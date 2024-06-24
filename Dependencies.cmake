@@ -29,7 +29,7 @@ function(SGLDM_setup_dependencies)
       NAME
       spdlog
       VERSION
-      1.11.0
+      1.14.1
       GITHUB_REPOSITORY
       "gabime/spdlog"
       OPTIONS
