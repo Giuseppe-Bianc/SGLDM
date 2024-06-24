@@ -1,4 +1,10 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.21...3.28)  # Aggiornare alla versione minima di CMake necessaria
+
+if (${CMAKE_VERSION} VERSION_LESS 3.21)
+  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+else ()
+  cmake_policy(VERSION 3.28)
+endif ()
 
 # This template attempts to be "fetch_content"-able
 # so that it works well with tools like CPM or other
@@ -7,7 +13,9 @@ cmake_minimum_required(VERSION 3.21)
 # Only set the cxx_standard if it is not set by someone else
 if (NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 20)
-endif()
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif ()
+
 
 # strongly encouraged to enable this globally to avoid conflicts between
 # -Wpedantic being enabled and -std=c++20 and -std=gnu++20 for example
@@ -69,7 +77,7 @@ endif()
 include(CTest)
 
 if(BUILD_TESTING)
-  message(AUTHOR_WARNING "Building Tests. Be sure to check out test/constexpr_tests.cpp for constexpr testing")
+  # message(AUTHOR_WARNING "Building Tests. Be sure to check out test/constexpr_tests.cpp for constexpr testing")
   add_subdirectory(test)
 endif()
 
@@ -92,7 +100,7 @@ if(MSVC)
 endif()
 
 # set the startup project for the "play" button in MSVC
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT intro)
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT engine)
 
 if(CMAKE_SKIP_INSTALL_RULES)
   return()
@@ -104,7 +112,7 @@ include(cmake/PackageProject.cmake)
 # we know we want to ship
 SGLDM_package_project(
   TARGETS
-  intro
+  engine
   SGLDM_options
   SGLDM_warnings
   # FIXME: this does not work! CK

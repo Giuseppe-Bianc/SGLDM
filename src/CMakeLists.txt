@@ -1,2 +1,3 @@
-add_subdirectory(sample_library)
-add_subdirectory(ftxui_sample)
+add_subdirectory(Core)
+add_subdirectory(engine)
+add_subdirectory(glad)

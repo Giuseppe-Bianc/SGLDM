@@ -36,7 +36,19 @@ function(SGLDM_setup_dependencies)
       "SPDLOG_FMT_EXTERNAL ON"
       "SPDLOG_ENABLE_PCH ON"
       "SPDLOG_BUILD_PIC ON")
-  endif()
+   endif()
+
+    if(NOT TARGET glfw)
+        CPMAddPackage(
+                NAME glfw
+                GIT_REPOSITORY https://github.com/glfw/glfw.git
+                GIT_TAG master # Use "master" for the latest version
+                #[[OPTIONS # Add options if needed
+                "GLM_TEST_ENABLE OFF" # Disable tests if needed
+                "GLM_ENABLE_CXX_20 ON"
+                "GLM_ENABLE_SIMD_AVX2 ON"]]
+        )
+    endif()
 
   if(NOT TARGET Catch2::Catch2WithMain)
     cpmaddpackage("gh:catchorg/Catch2@3.3.2")
@@ -44,14 +56,6 @@ function(SGLDM_setup_dependencies)
 
   if(NOT TARGET CLI11::CLI11)
     cpmaddpackage("gh:CLIUtils/CLI11@2.3.2")
-  endif()
-
-  if(NOT TARGET ftxui::screen)
-    cpmaddpackage("gh:ArthurSonzogni/FTXUI@5.0.0")
-  endif()
-
-  if(NOT TARGET tools::tools)
-    cpmaddpackage("gh:lefticus/tools#update_build_system")
   endif()
 
 endfunction()
