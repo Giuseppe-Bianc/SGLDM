@@ -1,3 +1,4 @@
+// NOLINTBEGIN(*-include-cleaner)
 #include <array>
 #include <functional>
 #include <iostream>
@@ -347,3 +348,4 @@ int main(int argc, const char **argv)
     spdlog::error("Unhandled exception in main: {}", e.what());
   }
 }
+// NOLINTEND(*-include-cleaner)
