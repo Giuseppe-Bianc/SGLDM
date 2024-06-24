@@ -197,9 +197,8 @@ jobs:
             build/*-*${{ matrix.build_type }}*-*.*
 
 
-      - name: Publish to codecov
-        uses: codecov/codecov-action@v2
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
         with:
-          flags: ${{ runner.os }}
-          name: ${{ runner.os }}-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/coverage.xml
