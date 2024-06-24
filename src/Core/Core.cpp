@@ -1,4 +1,4 @@
-#include <SGLDM/sample_library.hpp>
+#include <SGLDM/Core.hpp> // NOLINT(*-include-cleaner)
 
 int factorial(int input) noexcept
 {
