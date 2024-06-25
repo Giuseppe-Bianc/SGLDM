@@ -68,7 +68,6 @@ jobs:
         envFile: '.github/constants.env'
 
     - name: Setup Wayland Dependencies
-      if: matrix.os == 'ubuntu-20.04'
       run: |
           sudo apt-get update
           sudo apt-get install -y \
