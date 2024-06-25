@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-22.04
           - windows-2019
         compiler:
           - llvm-17.0.3
@@ -46,7 +46,7 @@ jobs:
           - compiler: llvm-17.0.3
             enable_ipo: Off
             gcov_executable: "llvm-cov gcov"
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             compiler: gcc-13
             generator: "Unix Makefiles"
             build_type: Debug
@@ -114,7 +114,7 @@ jobs:
           envFile: '.github/constants.env'
 
       - name: Setup Wayland Dependencies
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
