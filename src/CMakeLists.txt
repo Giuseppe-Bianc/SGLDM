@@ -1,3 +1,3 @@
 add_subdirectory(Core)
 add_subdirectory(engine)
-add_subdirectory(glad)
+add_subdirectory(Glad)
