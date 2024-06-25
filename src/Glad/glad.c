@@ -1,8 +1,12 @@
 #if defined(__GNUC__) && (__GNUC__ >= 11)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wnewline-eof"
 #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnewline-eof"
+#pragma clang diagnostic ignored "-Wsign-conversion"
 #endif
 /*
 
@@ -12846,6 +12850,10 @@ int gladLoadGLSC2Loader(GLADloadproc load) {
 
 #if defined(__GNUC__) && (__GNUC__ >= 11)
 #pragma GCC diagnostic pop
+#endif
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic pop
 #endif
 
 
