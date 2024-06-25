@@ -1,6 +1,3 @@
-[[nodiscard]] constexpr int factorial_constexpr(int input) noexcept
-{
-  if (input == 0) { return 1; }
+#pragma once
 
-  return input * factorial_constexpr(input - 1);
-}
+#include "glad/glad.h"
