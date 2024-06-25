@@ -18,7 +18,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-
       matrix:
         os:
           - ubuntu-20.04
@@ -36,21 +35,17 @@ jobs:
           - OFF
         build_shared:
           - OFF
-
         exclude:
           - os: windows-2019
             compiler: gcc-13
-
         include:
           - compiler: gcc-13
             gcov_executable: gcov
             enable_ipo: On
             enable_cppcheck: Off
-
           - compiler: llvm-17.0.3
             enable_ipo: Off
             gcov_executable: "llvm-cov gcov"
-
           - os: ubuntu-20.04
             compiler: gcc-13
             generator: "Unix Makefiles"
@@ -59,7 +54,6 @@ jobs:
             packaging_maintainer_mode: On
             enable_ipo: Off
             enable_cppcheck: Off
-
           - os: windows-2022
             compiler: msvc
             generator: "Visual Studio 17 2022"
@@ -67,7 +61,6 @@ jobs:
             packaging_maintainer_mode: On
             enable_ipo: On
             enable_cppcheck: On
-
           - os: windows-2022
             compiler: msvc
             generator: "Visual Studio 17 2022"
@@ -75,14 +68,12 @@ jobs:
             packaging_maintainer_mode: On
             enable_ipo: On
             enable_cppcheck: On
-
           - os: windows-2022
             compiler: msvc
             generator: "Visual Studio 17 2022"
             build_type: Debug
             packaging_maintainer_mode: Off
             enable_cppcheck: On
-
           - os: windows-2022
             compiler: msvc
             generator: "Visual Studio 17 2022"
@@ -90,7 +81,6 @@ jobs:
             packaging_maintainer_mode: Off
             package_generator: ZIP
             enable_cppcheck: On
-
           - os: windows-2022
             compiler: msvc
             generator: "Visual Studio 17 2022"
@@ -123,11 +113,20 @@ jobs:
         with:
           envFile: '.github/constants.env'
 
+      - name: Setup Wayland Dependencies
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwayland-dev \
+            wayland-protocols \
+            libxkbcommon-dev
+
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:
           compiler: ${{ matrix.compiler }}
-          vcvarsall: ${{ contains(matrix.os, 'windows' )}}
+          vcvarsall: ${{ contains(matrix.os, 'windows') }}
           cmake: true
           ninja: true
           vcpkg: false
@@ -138,12 +137,6 @@ jobs:
           cppcheck: true
           gcovr: true
           opencppcoverage: true
-
-      - name: Install wayland-scanner (Linux)
-        if: matrix.os == 'ubuntu-20.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wayland-scanner
 
       - name: Configure CMake
         run: |
