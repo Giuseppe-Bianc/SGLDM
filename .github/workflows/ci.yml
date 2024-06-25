@@ -122,7 +122,8 @@ jobs:
             wayland-protocols \
             libxkbcommon-dev \
             libxrandr-dev \
-            libxinerama-dev
+            libxinerama-dev \
+            libxcursor-dev
 
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
