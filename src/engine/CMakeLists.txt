@@ -1,9 +1,19 @@
-add_executable(engine main.cpp)
+add_executable(engine main.cpp
+        ShaderClass.cpp
+        ShaderClass.hpp
+        VBO.cpp
+        VBO.hpp
+        VAO.cpp
+        VAO.hpp
+        EBO.cpp
+        EBO.hpp
+        OpenGLContext.cpp
+        OpenGLContext.hpp)
 
 target_link_libraries(
-  engine
-  PRIVATE SGLDM::SGLDM_options
-          SGLDM::SGLDM_warnings)
+        engine
+        PRIVATE SGLDM::SGLDM_options
+        SGLDM::SGLDM_warnings)
 
 target_link_system_libraries(
         engine

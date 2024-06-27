@@ -12,7 +12,12 @@
 // This file will be generated automatically when cur_you run the CMake
 // configuration step. It creates a namespace called `SGLDM`. You can modify
 // the source template at `configured_files/config.hpp.in`.
+#include "EBO.hpp"
+#include "OpenGLContext.hpp"
 #include "SGLDM/Core.hpp"
+#include "ShaderClass.hpp"
+#include "VAO.hpp"
+
 #include <GLFW/glfw3.h>
 #include <internal_use_only/config.hpp>
 
@@ -33,11 +38,75 @@ static inline void keyCallback(GLFWwindow *window, int key, [[maybe_unused]] int
         break;
     }
 }
+
+// Function to handle OpenGL debug messages
+void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const GLchar *message,
+                            [[maybe_unused]] const void *userParam) {
+    // Ignore non-significant error/warning codes
+    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+
+    // clang-format off
+    std::string_view sourceStr;
+    switch (source) {
+    case GL_DEBUG_SOURCE_API:             sourceStr = "API"; break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   sourceStr = "Window System"; break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceStr = "Third Party"; break;
+    case GL_DEBUG_SOURCE_APPLICATION:     sourceStr = "Application"; break;
+    case GL_DEBUG_SOURCE_OTHER:           sourceStr = "Other"; break;
+    default:                              sourceStr = "Unknown"; break;
+    }
+
+    std::string_view typeStr;
+    switch (type) {
+    case GL_DEBUG_TYPE_ERROR:               typeStr = "Error"; break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behaviour"; break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeStr = "Undefined Behaviour"; break;
+    case GL_DEBUG_TYPE_PORTABILITY:         typeStr = "Portability"; break;
+    case GL_DEBUG_TYPE_PERFORMANCE:         typeStr = "Performance"; break;
+    case GL_DEBUG_TYPE_MARKER:              typeStr = "Marker"; break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "Push Group"; break;
+    case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "Pop Group"; break;
+    case GL_DEBUG_TYPE_OTHER:               typeStr = "Other"; break;
+    default:                                typeStr = "Unknown"; break;
+    }
+
+    std::string_view severityStr;
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:         severityStr = "High"; break;
+    case GL_DEBUG_SEVERITY_MEDIUM:       severityStr = "Medium"; break;
+    case GL_DEBUG_SEVERITY_LOW:          severityStr = "Low"; break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: severityStr = "Notification"; break;
+    default:                             severityStr = "Unknown"; break;
+    }
+    // clang-format on
+
+    // Determine color based on severity
+    switch(severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+        LERROR("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        LWARN("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        break;
+    case GL_DEBUG_SEVERITY_LOW:
+        LINFO("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+        LTRACE("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        break;
+    default:
+        LDEBUG("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        break;
+    }
+}
 static void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
 
 static inline constexpr auto WWIDTH = 800;
 static inline constexpr auto WHEIGHT = 600;
 static inline constexpr std::string_view WTITILE = "GLFW Window";
+static inline constexpr float sqrt3 = 1.7320507764816284180;
+
 // NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, const char **argv) {
     // NOLINTNEXTLINE
@@ -72,8 +141,9 @@ int main(int argc, const char **argv) {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-        glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+        // glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
         LINFO("{}", tt);
         vnd::Timer ttt("window creation");
         // Create a GLFW window
@@ -136,6 +206,10 @@ int main(int argc, const char **argv) {
         LINFO("{}", ttttttt);
         LINFO("created the window {0}: (w: {1}, h: {2}, pos:(x:{3}, y:{4}))", WTITILE.data(), WWIDTH, WHEIGHT, centerX, centerY);
         glfwMakeContextCurrent(window);
+        /*LINFO("Vendor:          {}", glGetString(GL_VENDOR));
+            LINFO("Renderer:        {}", glGetString(GL_RENDERER));
+            LINFO("Version OpenGL:  {}", glGetString(GL_VERSION));
+            LINFO("Version GLSL:    {}", glGetString(GL_SHADING_LANGUAGE_VERSION));*/
 
         // Initialize GLAD
         if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -143,19 +217,69 @@ int main(int argc, const char **argv) {
             return EXIT_FAILURE;
         }
 
+        int flags;
+        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+        if(flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);  // Ensure that errors are reported synchronously
+            glDebugMessageCallback(glDebugOutput, nullptr);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);  // Enable all messages
+        }
         // Set the viewport and register the framebuffer size callback
+        OpenGLContext open_gl_context;
+        open_gl_context.logOpenGLInfo();
+
         glViewport(0, 0, WWIDTH, WHEIGHT);  // NOLINT(*-avoid-magic-numbers)
+        glfwSwapInterval(1);
         glfwShowWindow(window);
+        // Vertex data
+        std::array<GLfloat, 36> vertices = {
+            -0.5F,  -0.5F * sqrt3 * 1 / 3, 0.0F, 0.8F, 0.3F,  0.02F,  // Lower left corner
+            0.5F,   -0.5F * sqrt3 * 1 / 3, 0.0F, 0.8F, 0.3F,  0.02F,  // Lower right corner
+            0.0F,   0.5F * sqrt3 * 2 / 3,  0.0F, 1.0F, 0.6F,  0.32F,  // Upper corner
+            -0.25F, 0.5F * sqrt3 * 1 / 6,  0.0F, 0.9F, 0.45F, 0.17F,  // Inner left
+            0.25F,  0.5F * sqrt3 * 1 / 6,  0.0F, 0.9F, 0.45F, 0.17F,  // Inner right
+            0.0F,   -0.5F * sqrt3 * 1 / 3, 0.0F, 0.8F, 0.3F,  0.02F   // Inner down
+        };
+
+        // Defining the indices array using std::array
+        std::array<GLuint, 9> indices = {
+            0, 3, 5,  // Lower left triangle
+            3, 2, 4,  // Lower right triangle
+            5, 4, 1   // Upper triangle
+        };
+        //  Generates Shader object using shaders defualt.vert and default.frag
+        Shader shaderProgram("../../../src/engine/default.vert", "../../../src/engine/default.frag");
+
+        // Generates Vertex Array Object and binds it
+        VAO VAO1;
+        VAO1.Bind();
+
+        // Generates Vertex Buffer Object and links it to vertices
+        VBO VBO1(vertices.data(), sizeof(vertices));
+        // Generates Element Buffer Object and links it to indices
+        EBO EBO1(indices.data(), sizeof(indices));
+
+        // Links VBO to VAO
+        VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void *)0);
+        VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+        // Unbind all to prevent accidentally modifying them
+        VAO1.Unbind();
+        VBO1.Unbind();
+        EBO1.Unbind();
 
         // Render loop
+        // Gets ID of uniform called "scale"
+        GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+
+        // Main while loop
         while(!glfwWindowShouldClose(window)) {
-            // Process input
-            if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(window, true); }
-            // Rendering commands here
             glClearColor(0.2F, 0.3F, 0.3F, 1.0F);  // NOLINT(*-avoid-magic-numbers)
             glClear(GL_COLOR_BUFFER_BIT);
-
-            // Swap buffers and poll IO events
+            shaderProgram.Activate();
+            glUniform1f(uniID, 0.5f);
+            VAO1.Bind();
+            glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
