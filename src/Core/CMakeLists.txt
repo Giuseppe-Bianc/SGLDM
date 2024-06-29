@@ -9,16 +9,16 @@ add_library(SGLDM::Core ALIAS Core)
 get_target_property(target_name Core NAME)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-  target_compile_options(${target_name} PRIVATE -march=native)
-  message(STATUS "Set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
+    target_compile_options(${target_name} PRIVATE -march=native)
+    message(STATUS "Set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  target_compile_options(${target_name} PRIVATE -march=native)
-  message(STATUS "Set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
+    target_compile_options(${target_name} PRIVATE -march=native)
+    message(STATUS "Set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND MSVC_VERSION GREATER 1900)
-  target_compile_options(${target_name} PRIVATE /arch:AVX2)
-  message(STATUS "Set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
+    target_compile_options(${target_name} PRIVATE /arch:AVX2)
+    message(STATUS "Set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
 else ()
-  message(STATUS "Impossible to set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
+    message(STATUS "Impossible to set SIMD instructions to AVX2 for target '${target_name}' with '${CMAKE_CXX_COMPILER_ID}' compiler.")
 endif ()
 
 
@@ -46,6 +46,6 @@ set_target_properties(
 
 generate_export_header(Core EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/SGLDM/core_export.hpp)
 
-if(NOT BUILD_SHARED_LIBS)
-  target_compile_definitions(Core PUBLIC CORE_STATIC_DEFINE)
-endif()
+if (NOT BUILD_SHARED_LIBS)
+    target_compile_definitions(Core PUBLIC CORE_STATIC_DEFINE)
+endif ()

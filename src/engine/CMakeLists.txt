@@ -8,7 +8,8 @@ add_executable(engine main.cpp
         EBO.cpp
         EBO.hpp
         OpenGLContext.cpp
-        OpenGLContext.hpp)
+        OpenGLContext.hpp
+        openglCalback.hpp)
 
 target_link_libraries(
         engine

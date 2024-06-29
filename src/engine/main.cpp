@@ -17,93 +17,13 @@
 #include "SGLDM/Core.hpp"
 #include "ShaderClass.hpp"
 #include "VAO.hpp"
+#include "openglCalback.hpp"
 
-#include <GLFW/glfw3.h>
 #include <internal_use_only/config.hpp>
 
-// Callback function for resizing the window
-static inline void errorCallback(int error, const char *description) { LERROR("GLFW Error ({0}): {1}", error, description); }
-
-static inline void keyCallback(GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
-    switch(key) {
-    case GLFW_KEY_ESCAPE:
-        if(action == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-            LINFO("escape close");
-        }
-        break;
-    // Add more cases for other keys if needed
-    [[likely]] default:
-        // Handle other keys here
-        break;
-    }
-}
-
-// Function to handle OpenGL debug messages
-void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const GLchar *message,
-                            [[maybe_unused]] const void *userParam) {
-    // Ignore non-significant error/warning codes
-    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
-
-    // clang-format off
-    std::string_view sourceStr;
-    switch (source) {
-    case GL_DEBUG_SOURCE_API:             sourceStr = "API"; break;
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   sourceStr = "Window System"; break;
-    case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
-    case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceStr = "Third Party"; break;
-    case GL_DEBUG_SOURCE_APPLICATION:     sourceStr = "Application"; break;
-    case GL_DEBUG_SOURCE_OTHER:           sourceStr = "Other"; break;
-    default:                              sourceStr = "Unknown"; break;
-    }
-
-    std::string_view typeStr;
-    switch (type) {
-    case GL_DEBUG_TYPE_ERROR:               typeStr = "Error"; break;
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behaviour"; break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeStr = "Undefined Behaviour"; break;
-    case GL_DEBUG_TYPE_PORTABILITY:         typeStr = "Portability"; break;
-    case GL_DEBUG_TYPE_PERFORMANCE:         typeStr = "Performance"; break;
-    case GL_DEBUG_TYPE_MARKER:              typeStr = "Marker"; break;
-    case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "Push Group"; break;
-    case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "Pop Group"; break;
-    case GL_DEBUG_TYPE_OTHER:               typeStr = "Other"; break;
-    default:                                typeStr = "Unknown"; break;
-    }
-
-    std::string_view severityStr;
-    switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:         severityStr = "High"; break;
-    case GL_DEBUG_SEVERITY_MEDIUM:       severityStr = "Medium"; break;
-    case GL_DEBUG_SEVERITY_LOW:          severityStr = "Low"; break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION: severityStr = "Notification"; break;
-    default:                             severityStr = "Unknown"; break;
-    }
-    // clang-format on
-
-    // Determine color based on severity
-    switch(severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-        LERROR("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
-        break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-        LWARN("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
-        break;
-    case GL_DEBUG_SEVERITY_LOW:
-        LINFO("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
-        break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-        LTRACE("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
-        break;
-    default:
-        LDEBUG("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
-        break;
-    }
-}
-static void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
-
-static inline constexpr auto WWIDTH = 800;
-static inline constexpr auto WHEIGHT = 600;
+static inline constexpr auto sizefactor = 67.5;
+static inline constexpr auto WWIDTH = C_I(sizefactor * 16);
+static inline constexpr auto WHEIGHT = C_I(sizefactor * 9);
 static inline constexpr std::string_view WTITILE = "GLFW Window";
 static inline constexpr float sqrt3 = 1.7320507764816284180;
 
@@ -139,6 +59,9 @@ int main(int argc, const char **argv) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
         // glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
@@ -272,12 +195,23 @@ int main(int argc, const char **argv) {
         // Gets ID of uniform called "scale"
         GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
+        long double m_LastFrameTime = 0;
+        float step = 0;
+        static long double times = 0.0L;
         // Main while loop
         while(!glfwWindowShouldClose(window)) {
+            auto time = C_LD(glfwGetTime());
+            auto timestep = Timestep(time - m_LastFrameTime);
+            m_LastFrameTime = time;
             glClearColor(0.2F, 0.3F, 0.3F, 1.0F);  // NOLINT(*-avoid-magic-numbers)
             glClear(GL_COLOR_BUFFER_BIT);
             shaderProgram.Activate();
-            glUniform1f(uniID, 0.5f);
+
+            // Increment the time
+            times += timestep.GetMilliseconds() / 150;
+            step = std::clamp(C_F((1.0L + sin(times)) / 2.0L), 0.0F, 0.75F);
+            // Pass the step value to the shader
+            glUniform1f(uniID, 0.5F);
             VAO1.Bind();
             glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
             glfwSwapBuffers(window);
