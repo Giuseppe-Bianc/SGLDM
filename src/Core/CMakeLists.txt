@@ -1,7 +1,8 @@
 include(GenerateExportHeader)
 
 find_package(glm REQUIRED)
-add_library(Core Core.cpp)
+add_library(Core Core.cpp
+        stb_image.cpp)
 
 add_library(SGLDM::Core ALIAS Core)
 

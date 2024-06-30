@@ -9,7 +9,9 @@ add_executable(engine main.cpp
         EBO.hpp
         OpenGLContext.cpp
         OpenGLContext.hpp
-        openglCalback.hpp)
+        openglCalback.hpp
+        Texture.cpp
+        Texture.hpp)
 
 target_link_libraries(
         engine

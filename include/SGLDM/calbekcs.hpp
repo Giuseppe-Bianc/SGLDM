@@ -8,7 +8,7 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
-inline void glClearErrors() {
+inline void glClearErrors() noexcept {
     while(glGetError() != GL_NO_ERROR) {}
 }
 inline GLenum glCheckError_(const char *function, const char *file, int line) {
@@ -65,6 +65,6 @@ static inline void keyCallback(GLFWwindow *window, int key, [[maybe_unused]] int
         break;
     }
 }
-static inline void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) {
+static inline void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) noexcept {
     glViewport(0, 0, width, height);
 }

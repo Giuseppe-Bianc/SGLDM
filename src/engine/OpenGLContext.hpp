@@ -6,16 +6,17 @@
 
 #include "SGLDM/Core.hpp"
 
+DISABLE_WARNINGS_PUSH(26446 26482)
 class OpenGLContext {
 public:
-    OpenGLContext() { retrieveOpenGLInfo(); }
+    OpenGLContext() noexcept { retrieveOpenGLInfo(); }
 
     void retrieveOpenGLInfo() {
         vnd::AutoTimer timer("retrieveOpenGLInfo");
-        vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
-        renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-        version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
-        glslVersion = reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+        vendor = std::bit_cast<const char *>(glGetString(GL_VENDOR));
+        renderer = std::bit_cast<const char *>(glGetString(GL_RENDERER));
+        version = std::bit_cast<const char *>(glGetString(GL_VERSION));
+        glslVersion = std::bit_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 
         glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
@@ -105,4 +106,5 @@ private:
     int maxTransformFeedbackSeparateComponents;
     int maxTransformFeedbackInterleavedComponents;
 };
+DISABLE_WARNINGS_POP()
 // NOLINTEND(*-include-cleaner)

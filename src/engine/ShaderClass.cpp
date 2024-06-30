@@ -5,8 +5,8 @@
 // NOLINTBEGIN(*-include-cleaner)
 #include "ShaderClass.hpp"
 
-std::string get_file_contents(const char *filename) {
-    const auto &filePath = fs::path(filename);
+std::string get_file_contents(const fs::path &filename) {
+    const auto &filePath = filename;
     if(!fs::exists(filePath)) { throw std::runtime_error(FORMAT("File not found: {}", filePath)); }
     if(!fs::is_regular_file(filePath)) { throw std::runtime_error(FORMAT("Path is not a regular file: {}", filePath)); }
 
@@ -62,7 +62,7 @@ void Shader::checkProgranlinking(GLuint program) {
         LERROR("SHADER::PROGRAM::COMPILATION_FAILED\n{}", std::string_view(infoLog.data()));
     }
 }
-Shader::Shader(const char *vertexFile, const char *fragmentFile) {
+Shader::Shader(const fs::path &vertexFile, const fs::path &fragmentFile) {
     // Read vertexFile and fragmentFile and store the strings
     std::string vertexCode = get_file_contents(vertexFile);
     std::string fragmentCode = get_file_contents(fragmentFile);
@@ -71,7 +71,7 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile) {
     const char *fragmentSource = fragmentCode.c_str();
 
     // Create Vertex Shader Object and get its reference
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     // Attach Vertex Shader source to the Vertex Shader Object
     glShaderSource(vertexShader, 1, &vertexSource, nullptr);
     // Compile the Vertex Shader into machine code
@@ -79,7 +79,7 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile) {
     checkShaderCompilation(vertexShader, SHADER_TYPE::VERTEX);
 
     // Create Fragment Shader Object and get its reference
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     // Attach Fragment Shader source to the Fragment Shader Object
     glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
     // Compile the Vertex Shader into machine code
@@ -94,8 +94,8 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile) {
     glLinkProgram(ID);
     checkProgranlinking(ID);
 }
-void Shader::Activate() const { glUseProgram(ID); }
+void Shader::Activate() const noexcept { glUseProgram(ID); }
 
 // Deletes the Shader Program
-void Shader::Delete() const { glDeleteProgram(ID); }
+void Shader::Delete() const noexcept { glDeleteProgram(ID); }
 // NOLINTEND(*-include-cleaner)

@@ -1,69 +1,99 @@
 //
 // Created by gbian on 29/06/2024.
 //
-
+// NOLINTBEGIN(*-include-cleaner *-easily-swappable-parameters)
 #pragma once
 #include "SGLDM/Core.hpp"
 
-// NOLINTNEXTLINE(*-easily-swappable-parameters)
+[[nodiscard]] inline std::string_view glSourceToString(GLenum source) noexcept {
+    switch(source) {
+    case GL_DEBUG_SOURCE_API:
+        return "API";
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        return "Window System";
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        return "Shader Compiler";
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+        return "Third Party";
+    case GL_DEBUG_SOURCE_APPLICATION:
+        return "Application";
+    case GL_DEBUG_SOURCE_OTHER:
+        return "Other";
+    default:
+        return "Unknown";
+    }
+}
+
+[[nodiscard]] inline std::string_view glTypeToString(GLenum type) noexcept {
+    switch(type) {
+    case GL_DEBUG_TYPE_ERROR:
+        return "Error";
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        return "Deprecated Behaviour";
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        return "Undefined Behaviour";
+    case GL_DEBUG_TYPE_PORTABILITY:
+        return "Portability";
+    case GL_DEBUG_TYPE_PERFORMANCE:
+        return "Performance";
+    case GL_DEBUG_TYPE_MARKER:
+        return "Marker";
+    case GL_DEBUG_TYPE_PUSH_GROUP:
+        return "Push Group";
+    case GL_DEBUG_TYPE_POP_GROUP:
+        return "Pop Group";
+    case GL_DEBUG_TYPE_OTHER:
+        return "Other";
+    default:
+        return "Unknown";
+    }
+}
+
+[[nodiscard]] inline std::string_view glSeverityToString(GLenum severity) noexcept {
+    switch(severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+        return "High";
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        return "Medium";
+    case GL_DEBUG_SEVERITY_LOW:
+        return "Low";
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+        return "Notification";
+    default:
+        return "Unknown";
+    }
+}
 inline void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length,
                                    const GLchar *message, [[maybe_unused]] const void *userParam) {
     // Ignore non-significant error/warning codes
+    vnd::Timer timer("glDebugOutput");
     if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
 
     // clang-format off
-    std::string_view sourceStr;
-    switch (source) {
-    case GL_DEBUG_SOURCE_API:             sourceStr = "API"; break;
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   sourceStr = "Window System"; break;
-    case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
-    case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceStr = "Third Party"; break;
-    case GL_DEBUG_SOURCE_APPLICATION:     sourceStr = "Application"; break;
-    case GL_DEBUG_SOURCE_OTHER:           sourceStr = "Other"; break;
-    default:                              sourceStr = "Unknown"; break;
-    }
-
-    std::string_view typeStr;
-    switch (type) {
-    case GL_DEBUG_TYPE_ERROR:               typeStr = "Error"; break;
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behaviour"; break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeStr = "Undefined Behaviour"; break;
-    case GL_DEBUG_TYPE_PORTABILITY:         typeStr = "Portability"; break;
-    case GL_DEBUG_TYPE_PERFORMANCE:         typeStr = "Performance"; break;
-    case GL_DEBUG_TYPE_MARKER:              typeStr = "Marker"; break;
-    case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "Push Group"; break;
-    case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "Pop Group"; break;
-    case GL_DEBUG_TYPE_OTHER:               typeStr = "Other"; break;
-    default:                                typeStr = "Unknown"; break;
-    }
-
-    std::string_view severityStr;
-    switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:         severityStr = "High"; break;
-    case GL_DEBUG_SEVERITY_MEDIUM:       severityStr = "Medium"; break;
-    case GL_DEBUG_SEVERITY_LOW:          severityStr = "Low"; break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION: severityStr = "Notification"; break;
-    default:                             severityStr = "Unknown"; break;
-    }
+    auto sourceStr = glSourceToString(source);
+    auto typeStr = glTypeToString(type);
+    auto severityStr = glSeverityToString(severity);
     // clang-format on
 
     // Determine color based on severity
     switch(severity) {
     case GL_DEBUG_SEVERITY_HIGH:
-        LERROR("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        LERROR("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}\n{}", id, message, sourceStr, typeStr, severityStr, timer);
         break;
     case GL_DEBUG_SEVERITY_MEDIUM:
-        LWARN("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        LWARN("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}\n{}", id, message, sourceStr, typeStr, severityStr, timer);
         break;
     case GL_DEBUG_SEVERITY_LOW:
-        LINFO("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        LINFO("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}\n{}", id, message, sourceStr, typeStr, severityStr, timer);
         break;
     case GL_DEBUG_SEVERITY_NOTIFICATION:
-        LTRACE("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        LTRACE("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}\n{}", id, message, sourceStr, typeStr, severityStr, timer);
         break;
     default:
-        LDEBUG("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}", id, message, sourceStr, typeStr, severityStr);
+        LDEBUG("Debug message ({}): {}\nSource: {}\nType: {}\nSeverity: {}\n{}", id, message, sourceStr, typeStr, severityStr, timer);
         break;
     }
     DEBUG_BREAK;
 }
+
+// NOLINTEND(*-include-cleaner *-easily-swappable-parameters)

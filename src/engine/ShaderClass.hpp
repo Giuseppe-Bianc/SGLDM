@@ -8,7 +8,7 @@
 #include "SGLDM/Core.hpp"
 
 enum SHADER_TYPE : std::uint8_t { VERTEX, FRAGMENT };
-inline std::string_view shader_t_to_string(SHADER_TYPE e) {
+inline std::string_view shader_t_to_string(SHADER_TYPE e) noexcept {
     switch(e) {
     case VERTEX:
         return "VERTEX";
@@ -18,15 +18,15 @@ inline std::string_view shader_t_to_string(SHADER_TYPE e) {
         return "unknown";
     }
 }
-std::string get_file_contents(const char *filename);
+std::string get_file_contents(const fs::path &filename);
 
 class Shader {
 public:
     GLuint ID;
-    Shader(const char *vertexFile, const char *fragmentFile);
+    Shader(const fs::path &vertexFile, const fs::path &fragmentFile);
 
-    void Activate() const;
-    void Delete() const;
+    void Activate() const noexcept;
+    void Delete() const noexcept;
     static void checkShaderCompilation(GLuint shader, SHADER_TYPE shaderType);
     static void checkProgranlinking(GLuint program);
 };

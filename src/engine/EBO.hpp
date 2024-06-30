@@ -11,12 +11,12 @@ public:
     // ID reference of Elements Buffer Object
     GLuint ID;
     // Constructor that generates a Elements Buffer Object and links it to indices
-    EBO(GLuint *indices, GLsizeiptr size);
+    EBO(GLuint *indices, GLsizeiptr size) noexcept;
 
     // Binds the EBO
-    void Bind() const;
+    void Bind() const noexcept;
     // Unbinds the EBO
-    void Unbind() const;
+    void Unbind() const noexcept;
     // Deletes the EBO
-    void Delete() const;
+    void Delete() const noexcept;
 };
