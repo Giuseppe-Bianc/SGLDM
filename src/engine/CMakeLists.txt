@@ -11,7 +11,9 @@ add_executable(engine main.cpp
         OpenGLContext.hpp
         openglCalback.hpp
         Texture.cpp
-        Texture.hpp)
+        Texture.hpp
+        Camera.cpp
+        Camera.hpp)
 
 target_link_libraries(
         engine

@@ -14,9 +14,9 @@ public:
     VBO(GLfloat *vertices, GLsizeiptr size) noexcept;
 
     // Binds the VBO
-    void Bind() const noexcept;
+    void Bind() noexcept;
     // Unbinds the VBO
-    void Unbind() const noexcept;
+    void Unbind() noexcept;
     // Deletes the VBO
-    void Delete() const noexcept;
+    void Delete() noexcept;
 };

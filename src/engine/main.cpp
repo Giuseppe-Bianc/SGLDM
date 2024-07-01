@@ -12,6 +12,7 @@
 // This file will be generated automatically when cur_you run the CMake
 // configuration step. It creates a namespace called `SGLDM`. You can modify
 // the source template at `configured_files/config.hpp.in`.
+#include "Camera.hpp"
 #include "EBO.hpp"
 #include "OpenGLContext.hpp"
 #include "SGLDM/Core.hpp"
@@ -22,13 +23,24 @@
 
 #include <internal_use_only/config.hpp>
 
+// clang-format off
 static inline constexpr auto sizefactor = 67.5;
 static inline constexpr auto WWIDTH = C_I(sizefactor * 16);
 static inline constexpr auto WHEIGHT = C_I(sizefactor * 9);
+static inline constexpr auto aspectRatio = C_F(WWIDTH / WHEIGHT);
 static inline constexpr std::string_view WTITILE = "GLFW Window";
-static inline constexpr float sqrt3 = 1.7320507764816284180;
+//static inline constexpr float sqrt3 = 1.7320507764816284180;
 static inline constexpr auto indexOffset = 3 * TypeSizes::sizeOfFloat;
 static inline constexpr auto textutreOffset = 6 * TypeSizes::sizeOfFloat;
+static inline constexpr auto vaoStride = 8 * TypeSizes::sizeOfFloat;
+// Vertices coordinates
+GLfloat vertices[] = {  //     COORDINATES     /        COLORS      /   TexCoord  //
+    -0.5f, 0.0f,  0.5f, 0.83f, 0.70f, 0.44f, 0.0f, 0.0f,  -0.5f, 0.0f,  -0.5f, 0.83f, 0.70f, 0.44f, 5.0f, 0.0f,  0.5f,  0.0f,  -0.5f, 0.83f,
+    0.70f, 0.44f, 0.0f, 0.0f,  0.5f,  0.0f,  0.5f, 0.83f, 0.70f, 0.44f, 5.0f,  0.0f,  0.0f,  0.8f,  0.0f, 0.92f, 0.86f, 0.76f, 2.5f,  5.0f};
+
+// Indices for vertices order
+GLuint indices[] = {0, 1, 2, 0, 2, 3, 0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4};
+// clang-format on
 void setHints() {
     vnd::AutoTimer timer("set glfw hints");
     // Set GLFW context version and profile
@@ -117,7 +129,6 @@ void setOpenGlDebugContext() {
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);  // Enable all messages
     }
 }
-
 fs::path calculateRelativePathToSrcRes(const fs::path &executablePath, const fs::path &targetFile) {
     // Get the parent directory of the executable path
     fs::path parentDir = executablePath.parent_path();
@@ -179,41 +190,28 @@ auto main(int argc, const char *const argv[]) -> int {
         glfwSwapInterval(1);
         LINFO("created the window {0}: (w: {1}, h: {2}, pos:(x:{3}, y:{4}))", WTITILE.data(), WWIDTH, WHEIGHT, cx, cy);
         glfwShowWindow(window);
-        // Vertices coordinates and colors
-        std::array<GLfloat, 32> vertices = {
-            // Coordinates          // Colors
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // Lower left corner, red
-            -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // Upper left corner, green
-            0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // Upper right corner, blue
-            0.5f,  -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  // Lower right corner, white
-        };
-
-        // Indices for vertices order
-        std::array<GLuint, 6> indices = {
-            0, 2, 1,  // First triangle
-            0, 3, 2   // Second triangle
-        };
         // Get the current path of the executable
         const fs::path currentPath = fs::current_path();
-        fs::path pop_catPath = calculateRelativePathToSrcRes(currentPath, fs::path("pop_cat.png"));
+        // fs::path pop_catPath = calculateRelativePathToSrcRes(currentPath, fs::path("pop_cat.png"));
+        fs::path brickPath = calculateRelativePathToSrcRes(currentPath, fs::path("brick.png"));
         fs::path vertPath = calculateRelativePathToSrcRes(currentPath, fs::path("default.vert"));
         fs::path fragPath = calculateRelativePathToSrcRes(currentPath, fs::path("default.frag"));
         //   Generates Shader object using shaders defualt.vert and default.frag
-        const auto shaderProgram = Shader(vertPath, fragPath);
+        auto shaderProgram = Shader(vertPath, fragPath);
 
         // Generates Vertex Array Object and binds it
-        const VAO VAO1;
+        VAO VAO1;
         VAO1.Bind();
 
         // Generates Vertex Buffer Object and links it to vertices
-        const VBO VBO1(vertices.data(), sizeof(vertices));
+        VBO VBO1(vertices, sizeof(vertices));
         // Generates Element Buffer Object and links it to indices
-        const EBO EBO1(indices.data(), sizeof(indices));
+        EBO EBO1(indices, sizeof(indices));
 
         // Links VBO to VAO
-        VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), nullptr);
-        VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), std::bit_cast<void *>(indexOffset));
-        VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), std::bit_cast<void *>(textutreOffset));
+        VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, vaoStride, nullptr);
+        VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, vaoStride, std::bit_cast<void *>(indexOffset));
+        VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, vaoStride, std::bit_cast<void *>(textutreOffset));
         // Unbind all to prevent accidentally modifying them
         VAO1.Unbind();
         VBO1.Unbind();
@@ -221,39 +219,50 @@ auto main(int argc, const char *const argv[]) -> int {
 
         // Render loop
         // Gets ID of uniform called "scale"
-        const GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+        // GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
-        Texture popCat(pop_catPath, GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
-        popCat.texUnit(shaderProgram, "tex0", 0);
+        Texture brick(brickPath, GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+        brick.texUnit(shaderProgram, "tex0", 0);
 
-        long double m_LastFrameTime = 0;
+        // Enables the Depth Buffer
+        Camera camera(WWIDTH, WHEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
+        auto prevTime = C_LD(glfwGetTime());
         // float step = 0;
-        static long double times = 0.0L;
+        // static long double times = 0.0L;
+        // bool printmatric = false;
+
+        glEnable(GL_DEPTH_TEST);
+        auto indicesCount = C_I(sizeof(indices) / TypeSizes::sizeOfInt);
         // Main while loop
         while(!glfwWindowShouldClose(window)) {
             const auto time = C_LD(glfwGetTime());
-            const auto timestep = Timestep(time - m_LastFrameTime);
-            m_LastFrameTime = time;
+            const auto timestep = Timestep(time - prevTime);
+            prevTime = time;
             glClearColor(0.2F, 0.3F, 0.3F, 1.0F);  // NOLINT(*-avoid-magic-numbers)
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             shaderProgram.Activate();
 
-            // Increment the time
-            // times += timestep.GetMilliseconds() / 150;
-            // step = std::clamp(C_F((1.0L + sin(times)) / 2.0L), 0.0F, 0.75F);
-            // Pass the step value to the shader
-            glUniform1f(uniID, 0.5F);
-            popCat.Bind();
+            // Handles camera inputs
+            camera.Inputs(window);
+            // Updates and exports the camera matrix to the Vertex Shader
+            camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
+
+            // Binds texture so that is appears in rendering
+            brick.Bind();
+            // Bind the VAO so OpenGL knows to use it
             VAO1.Bind();
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            // Draw primitives, number of indices, datatype of indices, index of indices
+            glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
+            // Swap the back buffer with the front buffer
             glfwSwapBuffers(window);
+            // Take care of all GLFW events
             glfwPollEvents();
         }
 
         // Clean up resources
         VAO1.Delete();
         VBO1.Delete();
-        popCat.Delete();
+        brick.Delete();
         shaderProgram.Delete();
         glfwDestroyWindow(window);
         glfwTerminate();

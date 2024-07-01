@@ -12,10 +12,10 @@ EBO::EBO(GLuint *indices, GLsizeiptr size) noexcept {  // NOLINT(*-pro-type-memb
 }
 
 // Binds the EBO
-void EBO::Bind() const noexcept { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
+void EBO::Bind() noexcept { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
 
 // Unbinds the EBO
-void EBO::Unbind() const noexcept { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+void EBO::Unbind() noexcept { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
 
 // Deletes the EBO
-void EBO::Delete() const noexcept { glDeleteBuffers(1, &ID); }
+void EBO::Delete() noexcept { glDeleteBuffers(1, &ID); }

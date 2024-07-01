@@ -2,7 +2,7 @@
 #define GLM_FORCE_INTRINSICS
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_SILENT_WARNINGS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+// #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_SIZE_T_LENGTH
 #define GLM_FORCE_PURE
 #define GLM_FORCE_EXPLICIT_CTOR
@@ -34,6 +34,7 @@ DISABLE_WARNINGS_PUSH(
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/string_cast.hpp>

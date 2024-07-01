@@ -14,9 +14,9 @@ public:
     EBO(GLuint *indices, GLsizeiptr size) noexcept;
 
     // Binds the EBO
-    void Bind() const noexcept;
+    void Bind() noexcept;
     // Unbinds the EBO
-    void Unbind() const noexcept;
+    void Unbind() noexcept;
     // Deletes the EBO
-    void Delete() const noexcept;
+    void Delete() noexcept;
 };

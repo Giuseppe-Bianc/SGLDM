@@ -14,11 +14,11 @@ public:
     VAO() noexcept;
 
     // Links a VBO to the VAO using a certain layout
-    void LinkAttrib(const VBO &VBO, GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void *offset) const noexcept;
+    void LinkAttrib(VBO &VBO, GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void *offset) noexcept;
     // Binds the VAO
-    void Bind() const noexcept;
+    void Bind() noexcept;
     // Unbinds the VAO
-    void Unbind() const noexcept;
+    void Unbind() noexcept;
     // Deletes the VAO
-    void Delete() const noexcept;
+    void Delete() noexcept;
 };
