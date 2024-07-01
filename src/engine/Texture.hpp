@@ -14,7 +14,7 @@ public:
     Texture(const fs::path &image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType);
 
     // Assigns a texture unit to a texture
-    void texUnit(Shader &shader, const char *uniform, GLuint unit) noexcept;
+    void texUnit(const Shader &shader, const char *uniform, GLuint unit) noexcept;
     // Binds a texture
     void Bind() const noexcept;
     // Unbinds a texture

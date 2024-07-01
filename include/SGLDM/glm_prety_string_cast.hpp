@@ -3,7 +3,7 @@
 #include "format.hpp"     // NOLINT(*-include-cleaner)
 #include "glm_matld.hpp"  // NOLINT(*-include-cleaner)
 
-// #define PRETTY_PRINT
+#define PRETTY_PRINT
 
 #define GLMP_FUN_QUAL GLM_FUNC_QUALIFIER
 namespace glmp {
@@ -277,15 +277,16 @@ namespace glmp {
             [[nodiscard]] GLMP_FUN_QUAL static std::string call(glm::mat<2, 3, T, Q> const &x) {
                 if(std::is_floating_point_v<T>) {
 #ifdef PRETTY_PRINT
-                    return FORMAT("{}mat2x3(({:.LF}, {:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, {:.LF}))", x[0][0], x[0][1], x[0][2], x[1][0],
-                                  x[1][1], x[1][2]);
+                    return FORMAT("{}mat2x3(({:.LF}, {:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, {:.LF}))", prefix<T>::value(), x[0][0], x[0][1],
+                                  x[0][2], x[1][0], x[1][1], x[1][2]);
 #else
                     return FORMAT("{}mat2x3(({:.LF}, {:.LF}, {:.LF}), ({:.LF}, {:.LF}, {:.LF}))", prefix<T>::value(), x[0][0], x[0][1],
                                   x[0][2], x[1][0], x[1][1], x[1][2]);
 #endif
                 } else {
 #ifdef PRETTY_PRINT
-                    return FORMAT("{}mat2x3(({}, {}, {}),\n ({}, {}, {}))", x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2]);
+                    return FORMAT("{}mat2x3(({}, {}, {}),\n ({}, {}, {}))", prefix<T>::value(), x[0][0], x[0][1], x[0][2], x[1][0], x[1][1],
+                                  x[1][2]);
 #else
                     return FORMAT("{}mat2x3(({}, {}, {}), ({}, {}, {}))", prefix<T>::value(), x[0][0], x[0][1], x[0][2], x[1][0], x[1][1],
                                   x[1][2]);
@@ -336,15 +337,15 @@ namespace glmp {
             [[nodiscard]] GLMP_FUN_QUAL static std::string call(glm::mat<3, 2, T, Q> const &x) {
                 if(std::is_floating_point_v<T>) {
 #ifdef PRETTY_PRINT
-                    return FORMAT("{}mat3x2(({:.LF}, {:.LF}),\n ({:.LF}, {:.LF}),\n ({:.LF}, {:.LF}))" prefix<T>::value(), x[0][0], x[0][1],
-                                  x[1][0], x[1][1], x[2][0], x[2][1]);
+                    return FORMAT("{}mat3x2(({:.LF}, {:.LF}),\n ({:.LF}, {:.LF}),\n ({:.LF}, {:.LF}))", prefix<T>::value(), x[0][0],
+                                  x[0][1], x[1][0], x[1][1], x[2][0], x[2][1]);
 #else
                     return FORMAT("{}mat3x2(({:.LF}, {:.LF}), ({:.LF}, {:.LF}), ({:.LF}, {:.LF}))", prefix<T>::value(), x[0][0], x[0][1],
                                   x[1][0], x[1][1], x[2][0], x[2][1]);
 #endif
                 } else {
 #ifdef PRETTY_PRINT
-                    return FORMAT("{}mat3x2(({}, {}),\n ({}, {}),\n ({}, {}))" prefix<T>::value(), x[0][0], x[0][1], x[1][0], x[1][1],
+                    return FORMAT("{}mat3x2(({}, {}),\n ({}, {}),\n ({}, {}))", prefix<T>::value(), x[0][0], x[0][1], x[1][0], x[1][1],
                                   x[2][0], x[2][1]);
 #else
                     return FORMAT("{}mat3x2(({}, {}), ({}, {}), ({}, {}))", prefix<T>::value(), x[0][0], x[0][1], x[1][0], x[1][1], x[2][0],
@@ -495,10 +496,11 @@ namespace glmp {
             [[nodiscard]] GLMP_FUN_QUAL static std::string call(glm::mat<4, 4, T, Q> const &x) {
                 if(std::is_floating_point_v<T>) {
 #ifdef PRETTY_PRINT
-                    return FORMAT("{}mat4x4(({:.LF}, {:.LF}, {:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, {:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, "
-                                  "{:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, {:.LF}, {:.LF}))",
-                                  prefix<T>::value(), x[0][0], x[0][1], x[0][2], x[0][3], x[1][0], x[1][1], x[1][2], x[1][3], x[2][0],
-                                  x[2][1], x[2][2], x[2][3], x[3][0], x[3][1], x[3][2], x[3][3]);
+                    return FORMAT(
+                        "{}mat4x4(({:.LF}, {:.LF}, {:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, {:.LF}, {:.LF}),\n ({:.LF}, {:.LF}, {:.LF}, "
+                        "{:.LF}),\n ({:.LF}, {:.LF}, {:.LF}, {:.LF}))",
+                        prefix<T>::value(), x[0][0], x[0][1], x[0][2], x[0][3], x[1][0], x[1][1], x[1][2], x[1][3], x[2][0], x[2][1],
+                        x[2][2], x[2][3], x[3][0], x[3][1], x[3][2], x[3][3]);
 #else
                     return FORMAT("{}mat4x4(({:.LF}, {:.LF}, {:.LF}, {:.LF}), ({:.LF}, {:.LF}, {:.LF}, {:.LF}), ({:.LF}, {:.LF}, {:.LF}, "
                                   "{:.LF}), ({:.LF}, {:.LF}, {:.LF}, {:.LF}))",
@@ -507,15 +509,13 @@ namespace glmp {
 #endif
                 } else {
 #ifdef PRETTY_PRINT
-                    return FORMAT("{}mat4x4(({}, {}, {}, {}),\n ({}, {}, {}, {}),\n ({}, {}, "
-                                  "{}, {}),\n ({}, {}, {}, {}))",
+                    return FORMAT("{}mat4x4(({}, {}, {}, {}),\n ({}, {}, {}, {}),\n ({}, {}, {}, {}),\n ({}, {}, {}, {}))",
                                   prefix<T>::value(), x[0][0], x[0][1], x[0][2], x[0][3], x[1][0], x[1][1], x[1][2], x[1][3], x[2][0],
                                   x[2][1], x[2][2], x[2][3], x[3][0], x[3][1], x[3][2], x[3][3]);
 #else
-                    return FORMAT("{}mat4x4(({}, {}, {}, {}), ({}, {}, {}, {}), ({}, {}, {}, "
-                                  "{}), ({}, {}, {}, {}))",
-                                  prefix<T>::value(), x[0][0], x[0][1], x[0][2], x[0][3], x[1][0], x[1][1], x[1][2], x[1][3], x[2][0],
-                                  x[2][1], x[2][2], x[2][3], x[3][0], x[3][1], x[3][2], x[3][3]);
+                    return FORMAT("{}mat4x4(({}, {}, {}, {}), ({}, {}, {}, {}), ({}, {}, {}, {}), ({}, {}, {}, {}))", prefix<T>::value(),
+                                  x[0][0], x[0][1], x[0][2], x[0][3], x[1][0], x[1][1], x[1][2], x[1][3], x[2][0], x[2][1], x[2][2],
+                                  x[2][3], x[3][0], x[3][1], x[3][2], x[3][3]);
 #endif
                 }
             }
@@ -526,11 +526,7 @@ namespace glmp {
          */
         template <typename T, glm::qualifier Q> struct compute_to_string<glm::qua<T, Q>> {
             [[nodiscard]] GLMP_FUN_QUAL static std::string call(glm::qua<T, Q> const &q) {  // NOLINT(*-identifier-length)
-                if(std::is_floating_point_v<T>) {
-                    return FORMAT("{}quat({{:.LF}, [{:.LF}, {:.LF}, {:.LF}])", prefix<T>::value(), q.w, q.x, q.y, q.z);
-                } else {
-                    return FORMAT("{}quat({{}, [{}, {}, {])", prefix<T>::value(), q.w, q.x, q.y, q.z);
-                }
+                return FORMAT("{}quat({}, [{}, {}, {}])", prefix<T>::value(), q.w, q.x, q.y, q.z);
             }
         };
 
@@ -539,16 +535,10 @@ namespace glmp {
          */
         template <typename T, glm::qualifier Q> struct compute_to_string<glm::tdualquat<T, Q>> {
             [[nodiscard]] GLMP_FUN_QUAL static std::string call(glm::tdualquat<T, Q> const &x) {
-                if(std::is_floating_point_v<T>) {
-                    return FORMAT("{}dualquat(({:.LF}, [{:.LF}, {:.LF}, {:.LF}]), ({:.LF}, [{:.LF}, {:.LF}, {:.LF}]))", prefix<T>::value(),
-                                  x.real.w, x.real.x, x.real.y, x.real.z, x.dual.w, x.dual.x, x.dual.y, x.dual.z);
-                } else {
-                    return FORMAT("{}dualquat(({}, [{}, {}, {}]), ({}, [{}, {}, {}]))", prefix<T>::value(), x.real.w, x.real.x, x.real.y,
-                                  x.real.z, x.dual.w, x.dual.x, x.dual.y, x.dual.z);
-                }
+                return FORMAT("{}dualquat(({}, [{}, {}, {}]), ({}, [{}, {}, {}]))", prefix<T>::value(), x.real.w, x.real.x, x.real.y,
+                              x.real.z, x.dual.w, x.dual.x, x.dual.y, x.dual.z);
             }
         };
-
     }  // namespace detail
 
     /**

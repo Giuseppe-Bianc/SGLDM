@@ -4,9 +4,10 @@
 
 #include "Camera.hpp"
 
-void Camera::Matrix(float FOVdeg, float nearPlane, float farPlane, Shader &shader, const char *uniform) {
+/*
+void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane) {
     // Initializes matrices since otherwise they will be the null matrix
-    auto view = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
 
     // Makes camera look in the right direction from the right position
@@ -14,39 +15,48 @@ void Camera::Matrix(float FOVdeg, float nearPlane, float farPlane, Shader &shade
     // Adds perspective to the scene
     projection = glm::perspective(glm::radians(FOVdeg), C_F(width / height), nearPlane, farPlane);
 
-    // Exports the camera matrix to the Vertex Shader
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(projection * view));
+    // Sets new camera matrix
+    cameraMatrix = projection * view;
 }
 
-void Camera::Inputs(GLFWwindow *window) {
-    // Handles key inputs
-    glm::vec3 forwardDirection = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 rightDirection = glm::normalize(glm::cross(Orientation, Up));
+void Camera::Matrix(const Shader &shader, const char *uniform) {
+    // Exports camera matrix
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
+}
 
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        Position += speed * forwardDirection;
-    }
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        Position -= speed * rightDirection;
-    }
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        Position -= speed * forwardDirection;
-    }
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        Position += speed * rightDirection;
-    }
-    if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { Position += speed * Up; }
-    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) { Position -= speed * Up; }
-    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+void Camera::Inputs(GLFWwindow *window, long double dt) {
+    // Handles key inputs
+    const glm::vec3 forwardDirection(0.0f, 0.0f, -1.0f);
+    const glm::vec3 rightDirection = glm::normalize(glm::cross(Orientation, Up));
+    float adjustedSpeed = speed * C_F(dt);
+
+    // Cache key states
+    bool moveForward = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
+    bool moveBackward = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
+    bool moveLeft = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS;
+    bool moveRight = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS;
+    bool moveUp = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+    bool moveDown = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+    bool resetPosition = glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS;
+    bool isFastKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+
+    // Adjust speed if fast key is pressed
+    if(isFastKeyPressed) {
         speed = 0.4f;
     } else {
-        speed = 0.1f;
+        speed = 0.2f;
     }
-    LINFO("position {}", Position);
 
-    // Handle key for resetting position
-    if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-        // Reset the camera position
+    // Move camera based on input
+    if(moveForward) { Position += adjustedSpeed * forwardDirection; }
+    if(moveBackward) { Position -= adjustedSpeed * forwardDirection; }
+    if(moveLeft) { Position -= adjustedSpeed * rightDirection; }
+    if(moveRight) { Position += adjustedSpeed * rightDirection; }
+    if(moveUp) { Position += adjustedSpeed * Up; }
+    if(moveDown) { Position -= adjustedSpeed * Up; }
+
+    // Reset the camera position if 'R' key is pressed
+    if(resetPosition) {
         Position = initialPosition;  // Assuming you have a member variable initialPosition set somewhere
     }
 
@@ -57,7 +67,7 @@ void Camera::Inputs(GLFWwindow *window) {
 
         // Prevents camera from jumping on the first click
         if(firstClick) {
-            glfwSetCursorPos(window, (width / 2), (height / 2));
+            glfwSetCursorPos(window, C_D(halfwidth), C_D(halfheight));
             firstClick = false;
         }
 
@@ -66,19 +76,19 @@ void Camera::Inputs(GLFWwindow *window) {
         glfwGetCursorPos(window, &mouseX, &mouseY);
 
         // Calculate mouse movement
-        float deltaX = sensitivity * C_F(mouseX - (width / 2.0)) / width;
-        float deltaY = sensitivity * C_F(mouseY - (height / 2.f)) / height;
+        const auto deltaX = C_F((sensitivity * (mouseX - halfwidth) / width) * dt);
+        const auto deltaY = C_F((sensitivity * (mouseY - halfheight) / height) * dt);
 
         // Update orientation using quaternion rotation
-        auto rotX = glm::angleAxis(-deltaY, glm::normalize(glm::cross(Orientation, Up)));
-        auto rotY = glm::angleAxis(-deltaX, Up);
+        const auto rotX = glm::angleAxis(-deltaY, glm::normalize(glm::cross(Orientation, Up)));
+        const auto rotY = glm::angleAxis(-deltaX, Up);
+        LINFO("dtx {} dty {}", rotX, rotY);
 
         // Apply rotations
         Orientation = rotX * Orientation;
         Orientation = glm::normalize(Orientation * rotY);
-
         // Set cursor position to the middle of the screen
-        glfwSetCursorPos(window, (width / 2.0), (height / 2.0));
+        glfwSetCursorPos(window, C_D(halfwidth), C_D(halfheight));
     } else {
         // Unhides cursor since camera is not looking around anymore
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -86,3 +96,4 @@ void Camera::Inputs(GLFWwindow *window) {
         firstClick = true;
     }
 }
+*/

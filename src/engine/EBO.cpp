@@ -6,6 +6,7 @@
 
 // Constructor that generates a Elements Buffer Object and links it to indices
 EBO::EBO(GLuint *indices, GLsizeiptr size) noexcept {  // NOLINT(*-pro-type-member-init)
+    assert(indices != nullptr && size > 0);
     glGenBuffers(1, &ID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);
